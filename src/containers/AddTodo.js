@@ -1,31 +1,31 @@
 import React from "react";
 import { connect } from "react-redux";
-import { addTodo } from "../redux/ducks/todos";
+import { actions } from "../redux/ducks/todos";
 
 let AddTodo = ({ dispatch }) => {
-  let input;
+	let input;
 
-  return (
-    <div>
-      <form
-        onSubmit={e => {
-          e.preventDefault();
-          if (!input.value.trim()) {
-            return;
-          }
-          dispatch(addTodo(input.value));
-          input.value = "";
-        }}
-      >
-        <input
-          ref={node => {
-            input = node;
-          }}
-        />
-        <button type="submit">Add Todo</button>
-      </form>
-    </div>
-  );
+	return (
+		<div>
+			<form
+				onSubmit={e => {
+					e.preventDefault();
+					if (!input.value.trim()) {
+						return;
+					}
+					dispatch(actions.addTodo(input.value));
+					input.value = "";
+				}}
+			>
+				<input
+					ref={node => {
+						input = node;
+					}}
+				/>
+				<button type="submit">Add Todo</button>
+			</form>
+		</div>
+	);
 };
 AddTodo = connect()(AddTodo);
 

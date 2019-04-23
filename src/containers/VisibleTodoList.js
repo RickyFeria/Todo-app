@@ -1,47 +1,53 @@
-import React from "react";
+import React, { useEffect, useCallback } from "react";
 import { connect } from "react-redux";
 import { withRouter } from "react-router-dom";
-import * as actions from "../redux/ducks/todos";
+import { actions } from "../redux/ducks/todos";
 import TodoList from "../components/TodoList";
-import { getVisibleTodos, getIsFetching } from "../redux/ducks";
+import FetchError from "../components/FetchError";
+import {
+	getVisibleTodos,
+	getIsFetching,
+	getErrorMessage
+} from "../redux/ducks";
 
-class VisibleTodoList extends React.Component {
-  componentDidMount = () => {
-    this.fetchData();
-  };
-  componentDidUpdate = prevProps => {
-    if (prevProps.filter !== this.props.filter) {
-      this.fetchData();
-    }
-  };
-  fetchData = () => {
-    const { filter, requestTodos, fetchTodos } = this.props;
-    requestTodos(filter);
-    fetchTodos(filter);
-  };
-  render() {
-    const { toggleTodo, todos, isFetching } = this.props;
-    if (isFetching && !todos.length) {
-      return <p>loading...</p>;
-    }
-    return <TodoList todos={todos} onTodoClick={toggleTodo} />;
-  }
-}
+const VisibleTodoList = ({
+	toggleTodo,
+	errorMessage,
+	todos,
+	isFetching,
+	filter,
+	fetchTodos
+}) => {
+	const fetchData = useCallback(() => {
+		fetchTodos(filter);
+	}, [fetchTodos, filter]);
 
-const mapStateToProps = (state, { match: { params } }) => {
-  const filter = params.filter || "all";
-  return {
-    todos: getVisibleTodos(state, filter),
-    isFetching: getIsFetching(state, filter),
-    filter
-  };
+	useEffect(() => {
+		fetchData();
+	}, [fetchData]);
+
+	if (isFetching && !todos.length) {
+		return <p>loading...</p>;
+	}
+	if (errorMessage && !todos.length) {
+		return <FetchError message={errorMessage} onRetry={() => fetchData()} />;
+	}
+	return <TodoList todos={todos} onTodoClick={toggleTodo} />;
 };
 
-VisibleTodoList = withRouter(
-  connect(
-    mapStateToProps,
-    actions
-  )(VisibleTodoList)
-);
+const mapStateToProps = (state, { match: { params } }) => {
+	const filter = params.filter || "all";
+	return {
+		todos: getVisibleTodos(state, filter),
+		isFetching: getIsFetching(state, filter),
+		errorMessage: getErrorMessage(state, filter),
+		filter
+	};
+};
 
-export default VisibleTodoList;
+export default withRouter(
+	connect(
+		mapStateToProps,
+		actions
+	)(VisibleTodoList)
+);
